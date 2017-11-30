@@ -180,16 +180,32 @@ describe "conditionals in filter" do
         if !("foo" in ["hello", "world"]) {
           mutate { add_tag => "shouldexist" }
         }
+        if ["a", "b"] in ["a", "b", "c"] {
+          mutate { add_tag => "list in list" }
+        }
+        if ["a", "d"] in ["a", "b", "c"] {
+          mutate { add_tag => "list not in list" }
+        }
+        if ["web", "frontend"] in [somelist] {
+          mutate { add_tag => "list in field" }
+        }
+        if ["web", "newyork"] in [somelist] {
+          mutate { add_tag => "list not in field" }
+        }
       }
     CONFIG
 
-    sample_one("foo" => "foo", "foobar" => "foobar", "greeting" => "hello world") do
+    sample_one("foo" => "foo", "foobar" => "foobar", "greeting" => "hello world", "somelist" => ["web", "frontend", "db"]) do
       expect(subject.get("tags")).to include("field in field")
       expect(subject.get("tags")).to include("field in string")
       expect(subject.get("tags")).to include("string in field")
       expect(subject.get("tags")).to include("field in list")
       expect(subject.get("tags")).not_to include("shouldnotexist")
       expect(subject.get("tags")).to include("shouldexist")
+      expect(subject.get("tags")).to include("list in list")
+      expect(subject.get("tags")).not_to include("list not in list")
+      expect(subject.get("tags")).to include("list in field")
+      expect(subject.get("tags")).not_to include("list not in field")
     end
   end
 
